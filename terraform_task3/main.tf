@@ -92,7 +92,7 @@ resource "aws_instance" "web" {
   instance_type   = var.instance_size
   subnet_id       = aws_subnet.my_subnet.id
    vpc_security_group_ids = [aws_security_group.web_sg]
-  key_name        = var.key  # Replace with your EC2 key pair
+  key_name        = var.key 
 
   tags = {
     Name = var.instance_name

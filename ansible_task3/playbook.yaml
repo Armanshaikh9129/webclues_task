@@ -1,0 +1,75 @@
+- name: Deploy Node.js application with Nginx
+  hosts: node
+  become: yes
+
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Install Python3 and pip3
+      apt:
+        name:
+          - python3
+          - python3-pip
+        state: present
+
+    - name: Pull Node.js Docker image
+      docker_image:
+        name: armansk9129/webclues:v1
+        source: pull
+
+    - name: Run Node.js container
+      docker_container:
+        name: task1_node_app
+        image: armansk9129/webclues:v1
+        state: started
+        ports:
+          - "3000:3000"
+        restart_policy: always
+
+    - name: Ensure Nginx is installed
+      apt:
+        name: nginx
+        state: present
+
+    - name: Configure Nginx to proxy requests to Node.js container
+      copy:
+        content: |
+          server {
+              listen 80;
+
+              server_name 3.110.118.82;
+
+              location / {
+                  proxy_pass http://3.110.118.82:3000;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_cache_bypass $http_upgrade;
+              }
+          }
+        dest: /etc/nginx/sites-available/task1_node_app
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Enable the Nginx configuration
+      file:
+        src: /etc/nginx/sites-available/task1_node_app
+        dest: /etc/nginx/sites-enabled/task1_node_app
+        state: link
+
+    - name: Remove default Nginx configuration if exists
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Restart Nginx to apply configuration changes
+      service:
+        name: nginx
+        state: restarted
+		

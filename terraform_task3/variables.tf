@@ -83,7 +83,7 @@ variable "subnet_zone" {
 }
 variable "private_key_path" {
   type = string
-  description = "/home/arman/armankey.pem"
+  description = "key_path"
 }
 
 
